@@ -1,0 +1,1 @@
+Use this agent to get stock prices for a given ticker symbol.
