@@ -19,6 +19,7 @@ from django.urls import path,include
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     path('api/datainjector/', include('datainjector.urls')),
+    path('api/users/', include('users.urls')),
 ]
