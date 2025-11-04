@@ -45,25 +45,31 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # ✅ Must be first (right after SecurityMiddleware)
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",  # ✅ must be here
+    "corsheaders.middleware.CorsMiddleware",                 # ✅ just after session
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
 ]
-
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_SAMESITE = "Lax"
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Session cookie must be sent cross-site
+SESSION_COOKIE_SAMESITE = 'None'
+# must be True if using HTTPS (for local dev you can disable HTTPS and set this False)
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:8001",
 ]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://localhost:8001"]
 
 ROOT_URLCONF = 'niceapi.urls'
 

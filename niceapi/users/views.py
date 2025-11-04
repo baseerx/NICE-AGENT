@@ -6,9 +6,11 @@ from rest_framework.response import Response
 from rest_framework import status
 import json
 from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
 import uuid
 from django.core.cache import cache
 from django.http import JsonResponse
+from django.conf import settings
 # Create your views here.
 
 
@@ -39,42 +41,29 @@ def register(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@csrf_exempt
 @api_view(["POST"])
 def login_view(request):
-    """
-    Authenticates the user and creates a session using Django's session framework.
-    """
-    try:
-        data = request.data
-        username = data.get("username")
-        password = data.get("password")
+    data = request.data
+    username = data.get("username")
+    password = data.get("password")
 
-        user = authenticate(request, username=username, password=password)
-        if user is None:
-            return Response(
-                {"error": "Invalid username or password"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    user = authenticate(request, username=username, password=password)
+    if not user:
+        return Response({"error": "Invalid username or password"}, status=400)
 
-        login(request, user)  # creates the session & sets sessionid cookie
+    login(request, user)  # creates session
 
-        response = Response(
-            {
-                "message": "Login successful",
-                "user": {"username": user.username, "email": user.email},
-            },
-            status=status.HTTP_200_OK,
-        )
-    # Optionally, store extra info in a cookie
-        response.set_cookie("username", user.username,
-                            httponly=True, samesite='Lax')
-        response.set_cookie("email", user.email, httponly=True, samesite='Lax')
-
-        return response
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # ✅ use JsonResponse instead of DRF Response for session cookie binding
+    response = JsonResponse({
+        "message": "Login successful",
+        "user": {"username": user.username, "email": user.email},
+    })
+   
+    return response
 
 
+@csrf_exempt
 @api_view(["GET"])
 def session_check(request):
     if request.user.is_authenticated:
@@ -89,7 +78,27 @@ def session_check(request):
         return Response({"authenticated": False})
 
 
-@api_view(["POST"])
-def logout_view(request):
-    logout(request)
-    return Response({"message": "Logged out successfully"})
+@csrf_exempt
+@api_view(["GET"])
+def user_logout(request):
+    try:
+        # log out user and clear session data
+        logout(request)
+
+        # prepare response
+        response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+
+        # delete all cookies present in the request (plus common ones)
+        cookies = set(request.COOKIES.keys())
+        cookies.update([getattr(settings, "SESSION_COOKIE_NAME", "sessionid"), "csrftoken"])
+
+        for cookie in cookies:
+            # delete_cookie signature varies by Django version; handle both cases
+            try:
+                response.delete_cookie(cookie, path="/", samesite="None")
+            except TypeError:
+                response.delete_cookie(cookie, path="/")
+
+        return response
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
