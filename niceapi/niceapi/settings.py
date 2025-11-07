@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
+load_dotenv()  # Load environment variables from .env file
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -66,10 +69,11 @@ CSRF_COOKIE_SECURE = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:8001",
+    "http://localhost:3000",
+ 
 ]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://localhost:8001"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173","http://localhost:3000"]
 
 ROOT_URLCONF = 'niceapi.urls'
 
@@ -96,19 +100,17 @@ WSGI_APPLICATION = 'niceapi.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'NICE',  # Replace with your actual database name
-        'USER': 'sa',
-        'PASSWORD': 'Sa@157',
-        'HOST': '192.168.157.51',
-        'PORT': '9090',
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
         'OPTIONS': {
-            # Ensure you have the correct ODBC driver installed
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'charset': 'utf8mb4',  # Optional, adjust as needed
-            'extra_params': 'TrustServerCertificate'  # Optional, adjust as needed
+            'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
+            'charset': os.getenv('DB_CHARSET', 'utf8mb4'),
+            'extra_params': os.getenv('DB_EXTRA_PARAMS', 'TrustServerCertificate'),
         },
-
     }
 }
 
