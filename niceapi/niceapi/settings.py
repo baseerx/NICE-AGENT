@@ -14,9 +14,19 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # Load environment variables from .env file
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Pick environment file based on DEBUG
+ENV_FILE = BASE_DIR / ('.env.development' if os.getenv('DJANGO_ENV')
+                       != 'production' else '.env.production')
+
+# Load the environment file
+load_dotenv(ENV_FILE)
 
 APPEND_SLASH = False
 # Quick-start development settings - unsuitable for production
