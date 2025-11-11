@@ -47,7 +47,7 @@ def login_view(request):
     data = request.data
     username = data.get("username")
     password = data.get("password")
-
+   
     user = authenticate(request, username=username, password=password)
     if not user:
         return Response({"error": "Invalid username or password"}, status=400)
