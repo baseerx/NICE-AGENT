@@ -304,6 +304,8 @@ def delete_article(request, articleid):
 
     try:
         article.delete()
+        Verification.objects.filter(article=article).delete()
+        ArticleTag.objects.filter(article=article).delete()
     except Exception as e:
         return Response({"message": "Failed to delete article", "error": str(e)}, status=500)
 
