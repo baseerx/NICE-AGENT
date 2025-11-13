@@ -46,6 +46,7 @@ class ArticleTag(models.Model):
     article = models.ForeignKey(
         NewsArticle, on_delete=models.CASCADE, related_name='auto_tags')
     tag_name = models.CharField(max_length=255)
+    individual_sentiment = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = 'article_tags'

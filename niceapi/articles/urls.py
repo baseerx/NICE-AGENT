@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import get_article, update_sentiment, verify_article, add_tag, remove_tag, delete_article, verified_articles
+from .views import get_article, update_sentiment, verify_article, add_tag, remove_tag, delete_article, verified_articles,set_tag_sentiment
 
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('<int:articleid>/delete/',
          delete_article, name='delete_article'),
     path('verified/', verified_articles, name='verified_articles'),
+    path('set_tag_sentiment/', set_tag_sentiment, name='set_tag_sentiment'),
     
 
 ]   

@@ -40,7 +40,8 @@ def get_article(request):
             v.verified_by_id,
 
             t.id AS tag_id,
-            t.tag_name
+            t.tag_name,
+                 t.individual_sentiment
         FROM [NICE].[dbo].[news_articles] a
         LEFT JOIN [NICE].[dbo].[overall_analysis] oa 
             ON a.overall_analysis_id = oa.id
@@ -100,7 +101,8 @@ def get_article(request):
         if row["tag_name"] and row["tag_name"] not in [t["tag_name"] for t in articles_dict[article_id]["tags"]]:
             articles_dict[article_id]["tags"].append({
                 "tag_id": row["tag_id"],
-                "tag_name": row["tag_name"]
+                "tag_name": row["tag_name"],
+                "sentiment": row["individual_sentiment"]
             })
 
     # Convert grouped data to list
@@ -143,7 +145,8 @@ def verified_articles(request):
             v.verified_by_id,
 
             t.id AS tag_id,
-            t.tag_name
+            t.tag_name,
+                 t.individual_sentiment
         FROM [NICE].[dbo].[news_articles] a
         LEFT JOIN [NICE].[dbo].[overall_analysis] oa 
             ON a.overall_analysis_id = oa.id
@@ -203,7 +206,8 @@ def verified_articles(request):
         if row["tag_name"] and row["tag_name"] not in [t["tag_name"] for t in articles_dict[article_id]["tags"]]:
             articles_dict[article_id]["tags"].append({
                 "tag_id": row["tag_id"],
-                "tag_name": row["tag_name"]
+                "tag_name": row["tag_name"],
+                "sentiment": row["individual_sentiment"]
             })
 
     # Convert grouped data to list
@@ -289,6 +293,38 @@ def add_tag(request, articleid):
             "tag_name": new_tag.tag_name
         }
     }, status=201)
+
+@api_view(['POST'])
+def set_tag_sentiment(request):
+    article_id = request.data.get("article_id")
+    tag_name = request.data.get("tag")
+    sentiment = request.data.get("sentiment")
+
+    if not all([article_id, tag_name, sentiment]):
+        return Response({"message": "article_id, tag, and sentiment are required"}, status=400)
+
+    try:
+        article = NewsArticle.objects.get(id=article_id)
+    except NewsArticle.DoesNotExist:
+        return Response({"message": "Article not found"}, status=404)
+
+    try:
+        tag = ArticleTag.objects.get(article=article, tag_name=tag_name)
+    except ArticleTag.DoesNotExist:
+        return Response({"message": "Tag not found for this article"}, status=404)
+
+    tag.individual_sentiment = sentiment
+    tag.save(update_fields=["individual_sentiment"])
+
+    return Response({
+        "message": "Tag sentiment updated successfully",
+        "article_id": article.pk,
+        "tag": {
+            "tag_id": tag.pk,
+            "tag_name": tag.tag_name,
+            "sentiment": tag.individual_sentiment
+        }
+    }, status=200)
 
 @api_view(['DELETE'])
 def delete_article(request, articleid):
