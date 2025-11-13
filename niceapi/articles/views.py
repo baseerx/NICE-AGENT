@@ -272,6 +272,33 @@ def verify_article(request, articleid):
 
 
 @api_view(['PUT'])
+def unverify_article(request, articleid):
+    try:
+        article = NewsArticle.objects.get(id=articleid)
+    except NewsArticle.DoesNotExist:
+        return Response({"message": "Article not found"}, status=404)
+
+    verification_data = request.data
+
+    # Pass verified_by as default if creating
+    tosave = Verification.objects.get(
+        article=article,
+    )
+
+        # If it already exists, update fields
+    tosave.verification_status = verification_data.get("verification_status")
+    tosave.verified_by = request.user
+    tosave.verified_at = timezone.now()
+    tosave.save()
+
+    return Response({
+        "message": "Article verified successfully",
+        "article_id": article.pk,
+        "verification_status": tosave.verification_status
+    }, status=200)
+
+
+@api_view(['PUT'])
 def add_tag(request, articleid):
     try:
         article = NewsArticle.objects.get(id=articleid)
